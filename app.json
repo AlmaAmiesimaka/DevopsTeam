@@ -1,0 +1,113 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "1 vpc and 2 subnets",
+    "Metadata": {
+
+    },
+    "Parameters": {
+      "appVpcCidr": {
+          "Description": "cidr for vpc",
+          "Type": "String",
+          "Default": "10.0.0.0/16"
+      },
+      "PbsnAZ": {
+          "Description": "AZ for pub sn",
+          "Type": "AWS::EC2::AvailabilityZone::Name"
+      },
+      "Pbsncidr": {
+          "Description": "cidr for pb sn",
+          "Type": "String",
+          "Default": "10.0.1.0/24"
+      },
+      "PvrtsnAZ": {
+          "Description": "AZ for prvt sn",
+          "Type": "AWS::EC2::AvailabilityZone::Name"
+      },
+      "Pvrtsncidr": {
+          "Description": "cidr for prvt sn",
+          "Type": "String",
+          "Default": "10.0.0.0/24"
+      }
+
+    },
+    "Mappings": {
+
+    },
+    "Conditions": {
+
+    },
+    "Resources": {
+      "appvpc": {
+        "Type": "AWS::EC2::VPC",
+        "Properties": {
+          "CidrBlock":{ "Ref": "appVpcCidr" },
+          "Tags": [{ "Key": "Name", "Value":  "appvpc" }]
+        }
+      },
+      "Pbsn": {
+        "Type": "AWS::EC2::Subnet",
+        "Properties": {
+          "AvailabilityZone": { "Ref": "PbsnAZ" },
+          "VpcId": { "Ref": "appvpc" },
+          "CidrBlock": { "Ref": "Pbsncidr" },
+          "Tags": [{ "Key": "Name", "Value":  "Pbsn" }]
+        }
+      },
+      "Prvtsn": {
+        "Type": "AWS::EC2::Subnet",
+        "Properties": {
+          "AvailabilityZone": { "Ref": "PvrtsnAZ" },
+          "VpcId": { "Ref": "appvpc" },
+          "CidrBlock": { "Ref": "Pvrtsncidr" },
+          "Tags": [{ "Key": "Name", "Value":  "Prvtsn" }]
+        }
+      },
+      "appigw": {
+        "Type": "AWS::EC2::InternetGateway",
+        "Properties": {
+          "Tags": [{ "Key": "Name", "Value":  "appigw" }]
+        }
+      },
+      "AttachGateway": {
+        "Type": "AWS::EC2::VPCGatewayAttachment",
+        "Properties": {
+          "VpcId": { "Ref": "appvpc" },
+          "InternetGatewayId": { "Ref": "appigw" }
+        }
+      },
+      "PbRT": {
+        "Type": "AWS::EC2::RouteTable",
+        "Properties": {
+          "VpcId": { "Ref": "appvpc" },
+          "Tags": [{ "Key": "Name", "Value":  "PbRT" }]
+        }
+      },
+      "PbRTAssoc": {
+        "Type": "AWS::EC2::SubnetRouteTableAssociation",
+        "Properties": {
+          "SubnetId": { "Ref": "Pbsn" },
+          "RouteTableId": { "Ref": "PbRT" }
+        }
+      },
+      "Pbroute": {
+        "Type": "AWS::EC2::Route",
+        "Properties": {
+          "RouteTableId": { "Ref": "PbRT" },
+          "DestinationCidrBlock": "10.0.0.0/0",
+          "GatewayId": { "Ref": "appigw" }
+        }
+      },
+      "PrvtRT": {
+        "Type": "AWS::EC2::RouteTable",
+        "Properties": {
+          "VpcId": { "Ref": "appvpc" },
+          "Tags": [{ "Key": "Name", "Value":  "PrvtRT" }]
+        }
+      }
+
+
+    },
+    "Outputs": {
+
+    }
+}
